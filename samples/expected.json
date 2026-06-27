@@ -1,0 +1,57 @@
+{
+  "_note": "*** SYNTHETIC TEST DATA — NOT REAL — FOR PII SCRUBBER TESTING ONLY ***",
+  "_description": "Ground truth of PII entities the scrubber must detect in sample files. 100% synthetic values.",
+  "expected_entities": {
+    "PERSON": [
+      "Juan Perez",
+      "Maria Gonzalez"
+    ],
+    "EMAIL": [
+      "juan.perez@example.com",
+      "maria.gonzalez@example.org"
+    ],
+    "PHONE": [
+      "+54 9 381 555-0142",
+      "+54 11 4555-0188"
+    ],
+    "CUIT_CUIL": [
+      "20-30111222-0",
+      "27-28999888-3",
+      "30-71234567-1"
+    ],
+    "DNI": [
+      "30111222",
+      "28999888"
+    ],
+    "IP_ADDRESS": [
+      "192.0.2.14",
+      "198.51.100.7"
+    ],
+    "CREDIT_CARD": [
+      "4111 1111 1111 1111",
+      "5555 5555 5555 4444",
+      "3782 822463 10005"
+    ],
+    "AWS_KEY": [
+      "AKIAIOSFODNN7EXAMPLE"
+    ],
+    "GITHUB_TOKEN": [
+      "ghp_TestToken00000000000000000000000fake"
+    ],
+    "SLACK_TOKEN": [
+      "xoxb-fake-slack-test-token-1234"
+    ],
+    "API_KEY": [
+      "sk-test00000000000000000000000000000000000fake"
+    ],
+    "LOCATION": [
+      "Yerba Buena",
+      "Tucuman",
+      "Buenos Aires"
+    ],
+    "ORG": [
+      "OliveX Security",
+      "Banco Sintetico S.A."
+    ]
+  }
+}
