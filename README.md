@@ -1,6 +1,112 @@
 # AnonAI
 
-PII anonymization module for sanitizing text before sending it to an LLM. Designed as a drop-in layer for security-sensitive AI pipelines.
+> **Strip the PII, keep the meaning, get it back afterwards.** AnonAI sits
+> between your data and the model: sensitive values leave as stable
+> placeholders, the model reasons over text that still reads naturally, and
+> the originals are restored in the response.
+
+---
+
+## Overview
+
+**What it does.** AnonAI detects and replaces personally identifiable and
+security-sensitive information in text, PDFs, Word documents and scanned images
+before that content reaches a language model. Replacement is consistent and
+reversible: the same value always becomes the same placeholder, and a mapping
+lets you restore the originals once the model has answered.
+
+**How it works.** Two detection layers run in a single pass. Custom regex
+recognizers handle structured values where a pattern alone is not enough —
+Argentine CUIT/CUIL with mod-11 checksum validation, DNI, credit cards verified
+by Luhn, and API keys matched either by known prefix (`sk-`, `ghp_`, `AKIA`,
+Slack tokens) or by Shannon entropy for unknown formats. Microsoft Presidio with
+a spaCy NER model handles the unstructured half: names, organisations and
+locations, which no regex can catch. Overlapping detections are resolved in
+favour of the highest-confidence match, then each value is swapped for a typed
+placeholder such as `[PERSON_1]` or `[AR_DNI_1]`. The checksum and entropy
+validation is what keeps precision usable: a 16-digit order number is not
+reported as a credit card, and a low-entropy string is not reported as a secret.
+
+**Why it matters for security teams.** Sending a client's logs, a penetration
+test report or a support ticket to a hosted model is a data transfer, and in
+many engagements a contractual problem. AnonAI makes that transfer safe by
+construction: the model sees structure and language but no identities, no card
+numbers and no live credentials. In irreversible mode no mapping is produced at
+all, for pipelines where the original values must never be recoverable
+downstream.
+
+**Why it matters for organisations.** Teams adopting AI assistants hit the same
+wall — the data most worth analysing is the data least permitted to leave. A
+sanitisation layer with a defensible detection story turns that from a blocking
+compliance question into a reviewable control, and the entity whitelist and
+blacklist let a legal or privacy team define exactly what gets scrubbed. The
+placeholder mapping means the workflow stays usable end to end: the answer the
+model produces comes back carrying real names again.
+
+**Results.** 96% recall against a synthetic ground-truth corpus, with 100%
+recall on every regex-backed entity type — CUIT/CUIL, DNI, credit cards, emails
+and IP addresses — where the remaining gap is NER missing some unstructured
+names. 56 tests cover detection, token consistency, round-trip restoration,
+file extraction and a no-leak assertion over the sample corpus. Input formats:
+plain text, PDF, DOCX and images via Tesseract OCR, individually or over a whole
+directory. The integration suite prints a per-entity recall table, so the
+detection rate is a measured number you can re-run, not a claim.
+
+---
+
+## Descripción general
+
+**Qué hace.** AnonAI detecta y reemplaza información personal identificable y
+datos sensibles de seguridad en texto, PDFs, documentos Word e imágenes
+escaneadas, antes de que ese contenido llegue a un modelo de lenguaje. El
+reemplazo es consistente y reversible: un mismo valor siempre se convierte en el
+mismo placeholder, y un mapeo permite restaurar los originales una vez que el
+modelo respondió.
+
+**Cómo funciona.** Dos capas de detección corren en una sola pasada. Los
+recognizers de regex propios cubren los valores estructurados donde el patrón
+por sí solo no alcanza: CUIT/CUIL argentino con validación de dígito
+verificador módulo 11, DNI, tarjetas de crédito verificadas por Luhn, y API keys
+identificadas por prefijo conocido (`sk-`, `ghp_`, `AKIA`, tokens de Slack) o
+por entropía de Shannon cuando el formato es desconocido. Microsoft Presidio con
+un modelo NER de spaCy cubre la mitad no estructurada: nombres, organizaciones y
+ubicaciones, que ninguna expresión regular puede capturar. Las detecciones
+solapadas se resuelven a favor de la de mayor confianza y cada valor se
+sustituye por un placeholder tipado como `[PERSON_1]` o `[AR_DNI_1]`. Esa
+validación por checksum y entropía es lo que mantiene usable la precisión: un
+número de pedido de 16 dígitos no se reporta como tarjeta, y una cadena de baja
+entropía no se reporta como secreto.
+
+**Para qué sirve a un equipo de seguridad.** Mandar los logs de un cliente, un
+reporte de pentest o un ticket de soporte a un modelo alojado es una
+transferencia de datos y, en muchos engagements, un problema contractual. AnonAI
+vuelve segura esa transferencia por construcción: el modelo ve estructura y
+lenguaje, pero no identidades, ni números de tarjeta, ni credenciales vivas. En
+modo irreversible no se genera mapeo alguno, para pipelines donde los valores
+originales nunca deben poder recuperarse aguas abajo.
+
+**Para qué sirve a una empresa.** Los equipos que adoptan asistentes de IA
+chocan siempre contra la misma pared: los datos que más valdría analizar son los
+que menos permiso tienen de salir. Una capa de sanitización con una historia de
+detección defendible convierte eso, de una pregunta de cumplimiento que bloquea,
+en un control auditable; y las listas blanca y negra de entidades permiten que
+el área legal o de privacidad defina exactamente qué se anonimiza. El mapeo de
+placeholders mantiene el flujo utilizable de punta a punta: la respuesta del
+modelo vuelve con los nombres reales.
+
+**Resultados.** 96% de recall contra un corpus sintético de ground truth, con
+100% de recall en cada tipo de entidad respaldada por regex —CUIT/CUIL, DNI,
+tarjetas, emails e IPs—, donde la diferencia restante es el NER perdiendo
+algunos nombres no estructurados. 56 tests cubren detección, consistencia de
+tokens, restauración de ida y vuelta, extracción de archivos y una aserción de
+no-fuga sobre el corpus de muestra. Formatos de entrada: texto plano, PDF, DOCX
+e imágenes vía OCR con Tesseract, de a uno o sobre un directorio completo. La
+suite de integración imprime una tabla de recall por entidad, así que la tasa de
+detección es un número medible y re-ejecutable, no una afirmación.
+
+---
+
+## Detection layers
 
 Combines two detection layers in a single pass:
 1. **Custom regex recognizers** for structured patterns (Argentine IDs, credit cards with Luhn validation, API keys with entropy scoring)
