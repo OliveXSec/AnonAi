@@ -1,6 +1,5 @@
 """Tests for custom Presidio recognizers."""
 
-import pytest
 
 from recognizers import (
     APIKeyRecognizer,

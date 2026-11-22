@@ -2,7 +2,7 @@
 
 import pytest
 
-from anonymizer import Anonymizer, AnonymizeResult
+from anonymizer import Anonymizer
 
 
 @pytest.fixture(scope="module")

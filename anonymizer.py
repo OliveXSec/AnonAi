@@ -24,14 +24,6 @@ except ImportError:
 
 try:
     import spacy
-
-    if not spacy.util.is_package("es_core_news_lg"):
-        print(
-            "ERROR: modelo de spaCy 'es_core_news_lg' no encontrado.\n"
-            "  python -m spacy download es_core_news_lg\n",
-            file=sys.stderr,
-        )
-        sys.exit(1)
 except ImportError:
     print(
         "ERROR: spaCy no está instalado.\n"
@@ -40,6 +32,8 @@ except ImportError:
         file=sys.stderr,
     )
     raise
+
+SPACY_MODEL = "es_core_news_lg"
 
 from recognizers import ALL_RECOGNIZERS
 
@@ -101,6 +95,12 @@ class Anonymizer:
         entity_whitelist: Optional[list[str]] = None,
         entity_blacklist: Optional[list[str]] = None,
     ) -> None:
+        if not spacy.util.is_package(SPACY_MODEL):
+            raise RuntimeError(
+                f"modelo de spaCy '{SPACY_MODEL}' no encontrado.\n"
+                f"  python -m spacy download {SPACY_MODEL}"
+            )
+
         self.reversible = reversible
         self.score_threshold = score_threshold
         self.entity_blacklist = set(entity_blacklist or [])
@@ -112,7 +112,7 @@ class Anonymizer:
 
         nlp_config = {
             "nlp_engine_name": "spacy",
-            "models": [{"lang_code": "es", "model_name": "es_core_news_lg"}],
+            "models": [{"lang_code": "es", "model_name": SPACY_MODEL}],
         }
         provider = NlpEngineProvider(nlp_configuration=nlp_config)
         nlp_engine = provider.create_engine()

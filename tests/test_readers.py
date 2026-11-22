@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from readers import read_file, read_directory, read_pdf, read_docx, read_image
+from readers import read_file, read_directory
 
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -166,7 +166,7 @@ class TestAnonymizerFile:
     def test_anonymize_directory(self, anon) -> None:
         results = anon.anonymize_directory(FIXTURES, extensions=[".txt"])
         assert len(results) >= 1
-        for path, res in results.items():
+        for _path, res in results.items():
             assert "[" in res.text
 
     def test_roundtrip_from_file(self, anon) -> None:

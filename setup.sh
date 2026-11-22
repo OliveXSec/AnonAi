@@ -4,15 +4,43 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-echo "[*] Verificando Homebrew..."
-if ! command -v brew &>/dev/null; then
-    echo "[-] Homebrew no encontrado. Instalalo desde https://brew.sh"
-    exit 1
-fi
+# ---------- Tesseract (OCR de imágenes, opcional) ----------
+install_tesseract() {
+    if command -v tesseract &>/dev/null; then
+        echo "[*] Tesseract ya instalado: $(tesseract --version 2>&1 | head -1)"
+        return 0
+    fi
 
-echo "[*] Instalando Tesseract + idiomas..."
-brew install tesseract tesseract-lang 2>/dev/null || brew upgrade tesseract tesseract-lang 2>/dev/null || true
+    case "$(uname -s)" in
+        Darwin)
+            if command -v brew &>/dev/null; then
+                echo "[*] Instalando Tesseract + idiomas (Homebrew)..."
+                brew install tesseract tesseract-lang
+            else
+                echo "[!] Homebrew no encontrado. Para OCR de imágenes instalá Tesseract:"
+                echo "      https://brew.sh  &&  brew install tesseract tesseract-lang"
+            fi
+            ;;
+        Linux)
+            if command -v apt-get &>/dev/null; then
+                echo "[*] Instalando Tesseract + español (apt)..."
+                sudo apt-get update -qq && sudo apt-get install -y tesseract-ocr tesseract-ocr-spa
+            elif command -v dnf &>/dev/null; then
+                echo "[*] Instalando Tesseract + español (dnf)..."
+                sudo dnf install -y tesseract tesseract-langpack-spa
+            else
+                echo "[!] Gestor de paquetes no reconocido. Para OCR instalá tesseract-ocr y el idioma spa."
+            fi
+            ;;
+        *)
+            echo "[!] SO no reconocido. Para OCR de imágenes instalá Tesseract manualmente."
+            ;;
+    esac
+}
 
+install_tesseract
+
+# ---------- Python ----------
 echo "[*] Creando virtual environment..."
 PYTHON=""
 for candidate in python3.13 python3.12 python3.11 python3; do
@@ -28,7 +56,8 @@ for candidate in python3.13 python3.12 python3.11 python3; do
 done
 
 if [ -z "$PYTHON" ]; then
-    echo "[-] Se requiere Python >= 3.10. Instalá con: brew install python@3.13"
+    echo "[-] Se requiere Python >= 3.10."
+    echo "    macOS: brew install python@3.13 | Linux: apt install python3.12 python3.12-venv"
     exit 1
 fi
 
@@ -46,6 +75,7 @@ echo "[*] Descargando modelo spaCy es_core_news_lg..."
 .venv/bin/python -m spacy download es_core_news_lg --quiet 2>/dev/null || \
     .venv/bin/python -m spacy download es_core_news_lg
 
+# ---------- Verificación ----------
 echo "[*] Verificando instalación..."
 .venv/bin/python -c "
 from anonymizer import Anonymizer
@@ -54,12 +84,14 @@ r = anon.anonymize('Test: user@mail.com')
 assert '[EMAIL_ADDRESS_1]' in r.text
 print('[+] Anonymizer OK')
 
-from readers import read_file
+from readers import read_file  # noqa: F401
 print('[+] Readers OK')
 
-import pytesseract
-v = pytesseract.get_tesseract_version()
-print(f'[+] Tesseract {v} OK')
+try:
+    import pytesseract
+    print(f'[+] Tesseract {pytesseract.get_tesseract_version()} OK')
+except Exception as e:
+    print(f'[!] OCR de imágenes no disponible ({e.__class__.__name__}). El resto funciona igual.')
 "
 
 echo ""

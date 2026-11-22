@@ -32,7 +32,7 @@ class CUITRecognizer(PatternRecognizer):
         if prefix not in self.VALID_PREFIXES:
             return False
         weights = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2]
-        total = sum(int(d) * w for d, w in zip(clean[:10], weights))
+        total = sum(int(d) * w for d, w in zip(clean[:10], weights, strict=True))
         remainder = total % 11
         expected = {0: 0, 1: 1}.get(remainder, 11 - remainder)
         return int(clean[10]) == expected
@@ -207,6 +207,11 @@ class APIKeyRecognizer(PatternRecognizer):
         entities: list[str],
         nlp_artifacts: Optional[NlpArtifacts] = None,
     ) -> list[RecognizerResult]:
+        # Presidio passes the caller's entity filter; honour it so an
+        # entity_whitelist that excludes API_KEY actually excludes it.
+        if entities and "API_KEY" not in entities:
+            return []
+
         results: list[RecognizerResult] = []
         for match in self.KNOWN_PREFIXES.finditer(text):
             results.append(

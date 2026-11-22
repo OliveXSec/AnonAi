@@ -288,7 +288,8 @@ class TestRecall:
             )
             import warnings
             warnings.warn(
-                f"NER model missed {len(ner_fails)} entities (not a scrubber bug):\n{details}"
+                f"NER model missed {len(ner_fails)} entities (not a scrubber bug):\n{details}",
+                stacklevel=2,
             )
 
 
@@ -317,11 +318,12 @@ class TestNoLeak:
         if ner_leaks:
             import warnings
             warnings.warn(
-                f"NER-dependent values not scrubbed ({len(ner_leaks)}):\n" + "\n".join(ner_leaks)
+                f"NER-dependent values not scrubbed ({len(ner_leaks)}):\n" + "\n".join(ner_leaks),
+                stacklevel=2,
             )
 
         if hard_leaks:
-            pytest.fail(f"PII leak detected:\n" + "\n".join(hard_leaks))
+            pytest.fail("PII leak detected:\n" + "\n".join(hard_leaks))
 
 
 class TestRoundTrip:

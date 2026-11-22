@@ -15,8 +15,8 @@ def read_pdf(path: str | Path, pages: Optional[list[int]] = None) -> str:
     """
     try:
         import pdfplumber
-    except ImportError:
-        raise ImportError("pdfplumber no está instalado: pip install pdfplumber")
+    except ImportError as e:
+        raise ImportError("pdfplumber no está instalado: pip install pdfplumber") from e
 
     parts: list[str] = []
     with pdfplumber.open(path) as pdf:
@@ -32,8 +32,8 @@ def read_docx(path: str | Path) -> str:
     """Extract text from a DOCX file, including tables."""
     try:
         from docx import Document
-    except ImportError:
-        raise ImportError("python-docx no está instalado: pip install python-docx")
+    except ImportError as e:
+        raise ImportError("python-docx no está instalado: pip install python-docx") from e
 
     doc = Document(str(path))
     parts: list[str] = []
@@ -60,22 +60,22 @@ def read_image(path: str | Path, lang: str = "spa") -> str:
     """
     try:
         import pytesseract
-    except ImportError:
-        raise ImportError("pytesseract no está instalado: pip install pytesseract")
+    except ImportError as e:
+        raise ImportError("pytesseract no está instalado: pip install pytesseract") from e
     try:
         from PIL import Image
-    except ImportError:
-        raise ImportError("Pillow no está instalado: pip install Pillow")
+    except ImportError as e:
+        raise ImportError("Pillow no está instalado: pip install Pillow") from e
 
     try:
         pytesseract.get_tesseract_version()
-    except pytesseract.TesseractNotFoundError:
+    except pytesseract.TesseractNotFoundError as e:
         raise RuntimeError(
             "Tesseract no encontrado en el sistema.\n"
             "  macOS: brew install tesseract\n"
             "  Linux: apt install tesseract-ocr\n"
             "  Para español: brew install tesseract-lang  (o apt install tesseract-ocr-spa)"
-        )
+        ) from e
 
     img = Image.open(str(path))
     return pytesseract.image_to_string(img, lang=lang).strip()

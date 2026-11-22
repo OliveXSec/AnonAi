@@ -1,0 +1,7 @@
+-r requirements.txt
+
+# Test suite
+pytest==9.0.3
+
+# tests/test_readers.py and generate_samples.py build PDF fixtures with reportlab
+reportlab==4.4.4

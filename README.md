@@ -61,19 +61,27 @@ The same original value always maps to the same placeholder throughout the text:
 
 ## Installation
 
+Requires **Python 3.10-3.13**. `presidio-analyzer` does not publish wheels for
+3.14 yet, and the `python3` shipped with macOS is 3.9 -- name the interpreter
+explicitly if your default is one of those.
+
 ```bash
 # Quick setup (creates venv, installs everything, verifies)
+# Picks a suitable interpreter and installs Tesseract on macOS or Linux.
 ./setup.sh
 
 # Or manually
-python3 -m venv .venv && source .venv/bin/activate
+python3.13 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python -m spacy download es_core_news_lg
 
 # For image OCR (optional)
-brew install tesseract tesseract-lang   # macOS
-# apt install tesseract-ocr tesseract-ocr-spa  # Linux
+brew install tesseract tesseract-lang          # macOS
+# sudo apt install tesseract-ocr tesseract-ocr-spa   # Debian/Ubuntu
 ```
+
+Image OCR is the only optional piece: without Tesseract, text, PDF and DOCX
+still work.
 
 ## Usage
 
@@ -184,7 +192,8 @@ For unknown prefixes, flags high-entropy strings (40+ chars, Shannon entropy >= 
 ├── recognizers.py      # 7 custom Presidio recognizers (CUIT, DNI, CC, API keys, etc.)
 ├── readers.py          # File text extraction (PDF, DOCX, images, TXT, directories)
 ├── setup.sh            # One-command installation script
-├── requirements.txt    # Pinned dependencies
+├── requirements.txt    # Pinned runtime dependencies
+├── requirements-dev.txt # Test-only dependencies (pytest, reportlab)
 ├── samples/            # Synthetic test data for integration tests
 │   ├── expected.json   # Ground truth: entities the scrubber must detect
 │   ├── sample_pii.pdf
@@ -201,6 +210,9 @@ For unknown prefixes, flags high-entropy strings (40+ chars, Shannon entropy >= 
 ## Tests
 
 ```bash
+# The suite needs pytest and reportlab (PDF fixtures) on top of the runtime deps
+.venv/bin/pip install -r requirements-dev.txt
+
 # Run all tests (56 tests)
 .venv/bin/python -m pytest tests/ -v
 
@@ -225,7 +237,7 @@ TOTAL                    79       76          0        3        0      96%
 
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE).
 
 ## Author
 
